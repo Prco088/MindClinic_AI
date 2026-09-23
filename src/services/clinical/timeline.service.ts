@@ -4,7 +4,9 @@ export type TimelineEventType = "ANAMNESIS" | "PROGRESS_NOTE" | "ADDENDUM" | "DI
 
 export interface TimelineEvent {
   id: string;
-  type: TimelineEventType;
+  eventType: TimelineEventType;
+  title: string;
+  description: string;
   date: Date; // The relevant sorting date
   createdAt: Date;
   createdBy?: { id: string; name: string } | null;
@@ -60,7 +62,9 @@ export async function getPatientTimeline(
   for (const a of anamneses) {
     timeline.push({
       id: a.id,
-      type: "ANAMNESIS",
+      eventType: "ANAMNESIS",
+      title: "Anamnese Realizada",
+      description: "Registro inicial do paciente",
       date: a.createdAt,
       createdAt: a.createdAt,
       patientId: a.patientId,
@@ -72,7 +76,9 @@ export async function getPatientTimeline(
   for (const p of progressNotes) {
     timeline.push({
       id: p.id,
-      type: "PROGRESS_NOTE",
+      eventType: "PROGRESS_NOTE",
+      title: "Evolução Clínica",
+      description: p.content.substring(0, 100) + (p.content.length > 100 ? "..." : ""),
       date: p.sessionDate, // sort by session date
       createdAt: p.createdAt,
       createdBy: p.user,
@@ -85,7 +91,9 @@ export async function getPatientTimeline(
   for (const ad of addendums) {
     timeline.push({
       id: ad.id,
-      type: "ADDENDUM",
+      eventType: "ADDENDUM",
+      title: "Adendo a Evolução",
+      description: ad.content.substring(0, 100) + (ad.content.length > 100 ? "..." : ""),
       date: ad.createdAt,
       createdAt: ad.createdAt,
       createdBy: ad.user,
@@ -98,7 +106,9 @@ export async function getPatientTimeline(
   for (const d of diagnoses) {
     timeline.push({
       id: d.id,
-      type: "DIAGNOSIS",
+      eventType: "DIAGNOSIS",
+      title: d.title,
+      description: d.description ? d.description.substring(0, 100) + (d.description.length > 100 ? "..." : "") : (d.cidCode || "Sem descrição"),
       date: d.createdAt,
       createdAt: d.createdAt,
       createdBy: d.user,
@@ -111,7 +121,9 @@ export async function getPatientTimeline(
   for (const at of attachments) {
     timeline.push({
       id: at.id,
-      type: "ATTACHMENT",
+      eventType: "ATTACHMENT",
+      title: "Documento Anexado",
+      description: at.fileName,
       date: at.createdAt,
       createdAt: at.createdAt,
       patientId: at.patientId,
@@ -123,7 +135,9 @@ export async function getPatientTimeline(
   for (const c of consentTerms) {
     timeline.push({
       id: c.id,
-      type: "CONSENT_TERM",
+      eventType: "CONSENT_TERM",
+      title: "Termo de Consentimento",
+      description: c.accepted ? "Consentimento Aceito" : "Consentimento Pendente",
       date: c.createdAt,
       createdAt: c.createdAt,
       patientId: c.patientId,

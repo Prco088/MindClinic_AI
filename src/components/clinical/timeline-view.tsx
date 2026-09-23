@@ -25,13 +25,13 @@ export function TimelineView({ events }: TimelineViewProps) {
   return (
     <div className="space-y-6">
       {events.map((event) => (
-        <Card key={`${event.type}-${event.id}`} className="relative">
+        <Card key={`${event.eventType}-${event.id}`} className="relative">
           <div className="absolute -left-3 top-6 h-6 w-6 rounded-full border-4 border-background bg-primary" />
           <CardHeader className="pb-2">
             <div className="flex justify-between items-start">
               <div>
                 <CardTitle className="text-lg">
-                  {getEventTitle(event.type)}
+                  {event.title}
                 </CardTitle>
                 <CardDescription>
                   {format(new Date(event.date), "dd 'de' MMMM 'de' yyyy, HH:mm", { locale: ptBR })}
@@ -49,20 +49,8 @@ export function TimelineView({ events }: TimelineViewProps) {
   );
 }
 
-function getEventTitle(type: TimelineEvent["type"]) {
-  switch (type) {
-    case "ANAMNESIS": return "Anamnese";
-    case "PROGRESS_NOTE": return "Evolução Clínica";
-    case "ADDENDUM": return "Adendo de Evolução";
-    case "DIAGNOSIS": return "Diagnóstico";
-    case "ATTACHMENT": return "Documento Anexado";
-    case "CONSENT_TERM": return "Termo de Consentimento";
-    default: return "Evento Clínico";
-  }
-}
-
 function renderEventContent(event: TimelineEvent) {
-  switch (event.type) {
+  switch (event.eventType) {
     case "PROGRESS_NOTE":
       return (
         <div className="space-y-2">
