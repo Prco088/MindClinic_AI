@@ -28,9 +28,10 @@ model Tenant {
   consentTerms   ConsentTerm[]
   anamnesis      Anamnesis[]
   progressNotes  ProgressNote[]
-  diagnoses      Diagnosis[]
-  attachments    Attachment[]
-  auditLogs      AuditLog[]
+  diagnoses             Diagnosis[]
+  attachments           Attachment[]
+  auditLogs             AuditLog[]
+  progressNoteAddendums ProgressNoteAddendum[]
 }
 
 model User {
@@ -50,9 +51,10 @@ model User {
   sessions       Session[]
   appointments   Appointment[]
   medicalRecords MedicalRecord[]
-  progressNotes  ProgressNote[]
-  diagnoses      Diagnosis[]
-  auditLogs      AuditLog[]
+  progressNotes         ProgressNote[]
+  diagnoses             Diagnosis[]
+  auditLogs             AuditLog[]
+  progressNoteAddendums ProgressNoteAddendum[]
 }
 
 model Account {
@@ -186,25 +188,46 @@ model Anamnesis {
 }
 
 model ProgressNote {
-  id          String   @id @default(cuid())
-  tenantId    String
-  patientId   String
-  userId      String
+  id                 String   @id @default(cuid())
+  tenantId           String
+  patientId          String
+  userId             String
   
-  sessionDate DateTime
-  content     String   @db.Text
-  isSigned    Boolean  @default(false)
-  signedAt    DateTime?
+  sessionDate        DateTime
+  content            String   @db.Text
+  clinicalAssessment String?  @db.Text
+  therapeuticPlan    String?  @db.Text
+  observations       String?  @db.Text
+  
+  isSigned           Boolean  @default(false)
+  signedAt           DateTime?
+  signedBy           String?
 
-  deletedAt   DateTime?
-  deletedBy   String?
+  deletedAt          DateTime?
+  deletedBy          String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant    Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient   Patient                @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  user      User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  addendums ProgressNoteAddendum[]
+}
+
+model ProgressNoteAddendum {
+  id             String   @id @default(cuid())
+  tenantId       String
+  progressNoteId String
+  userId         String
+  content        String   @db.Text
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  progressNote ProgressNote @relation(fields: [progressNoteId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Diagnosis {
@@ -214,6 +237,7 @@ model Diagnosis {
   userId      String
 
   cidCode     String?
+  system      String?
   title       String
   description String?  @db.Text
   isActive    Boolean  @default(true)
