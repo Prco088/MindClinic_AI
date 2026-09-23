@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AppointmentStatus, AppointmentType } from "@prisma/client";
@@ -163,19 +163,25 @@ export function AppointmentModal({ open, onOpenChange, appointment, initialDates
           <div className="grid gap-4">
             <div className="grid gap-2">
               <Label>Paciente *</Label>
-              <Select 
-                value={form.watch("patientId")} 
-                onValueChange={(val) => form.setValue("patientId", val || "")}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o paciente" />
-                </SelectTrigger>
-                <SelectContent>
-                  {patients.map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.fullName}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Controller
+                control={form.control}
+                name="patientId"
+                render={({ field }) => (
+                  <Select 
+                    value={field.value} 
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o paciente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {patients.map(p => (
+                        <SelectItem key={p.id} value={p.id}>{p.fullName}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
               {form.formState.errors.patientId && (
                 <p className="text-sm text-red-500">{form.formState.errors.patientId.message}</p>
               )}
@@ -206,37 +212,49 @@ export function AppointmentModal({ open, onOpenChange, appointment, initialDates
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Tipo de Consulta</Label>
-                <Select 
-                  value={form.watch("appointmentType")} 
-                  onValueChange={(val: any) => form.setValue("appointmentType", val)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="IN_PERSON">Presencial</SelectItem>
-                    <SelectItem value="ONLINE">Online</SelectItem>
-                    <SelectItem value="HOME_VISIT">Domiciliar</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Controller
+                  control={form.control}
+                  name="appointmentType"
+                  render={({ field }) => (
+                    <Select 
+                      value={field.value} 
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="IN_PERSON">Presencial</SelectItem>
+                        <SelectItem value="ONLINE">Online</SelectItem>
+                        <SelectItem value="HOME_VISIT">Domiciliar</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
               <div className="grid gap-2">
                 <Label>Status</Label>
-                <Select 
-                  value={form.watch("status")} 
-                  onValueChange={(val: any) => form.setValue("status", val)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="SCHEDULED">Agendado</SelectItem>
-                    <SelectItem value="CONFIRMED">Confirmado</SelectItem>
-                    <SelectItem value="COMPLETED">Concluído</SelectItem>
-                    <SelectItem value="CANCELLED">Cancelado</SelectItem>
-                    <SelectItem value="NO_SHOW">Faltou</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Controller
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <Select 
+                      value={field.value} 
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="SCHEDULED">Agendado</SelectItem>
+                        <SelectItem value="CONFIRMED">Confirmado</SelectItem>
+                        <SelectItem value="COMPLETED">Concluído</SelectItem>
+                        <SelectItem value="CANCELLED">Cancelado</SelectItem>
+                        <SelectItem value="NO_SHOW">Faltou</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
             </div>
             
