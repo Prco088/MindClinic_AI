@@ -25,7 +25,7 @@ const navItems = [
   },
   {
     title: "Agenda",
-    href: "/appointments",
+    href: "/appointments/calendar",
     icon: Calendar,
   },
   {

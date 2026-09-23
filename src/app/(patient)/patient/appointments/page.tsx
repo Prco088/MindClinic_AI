@@ -19,7 +19,7 @@ const statusMap = {
   SCHEDULED: { label: "Agendada", color: "bg-blue-500/10 text-blue-500" },
   CONFIRMED: { label: "Confirmada", color: "bg-green-500/10 text-green-500" },
   COMPLETED: { label: "Realizada", color: "bg-emerald-500/10 text-emerald-500" },
-  CANCELED: { label: "Cancelada", color: "bg-destructive/10 text-destructive" },
+  CANCELLED: { label: "Cancelada", color: "bg-destructive/10 text-destructive" },
   NO_SHOW: { label: "Não Compareceu", color: "bg-orange-500/10 text-orange-500" },
 };
 
@@ -39,29 +39,29 @@ export default async function PatientAppointmentsPage() {
       patientId,
     },
     include: {
-      user: {
+      professional: {
         select: {
           name: true,
         }
       }
     },
     orderBy: {
-      date: "desc"
+      startsAt: "desc"
     }
   });
 
   const now = new Date();
 
   const upcoming = appointments.filter(a => 
-    (a.status === "SCHEDULED" || a.status === "CONFIRMED") && a.date >= now
-  ).sort((a, b) => a.date.getTime() - b.date.getTime());
+    (a.status === "SCHEDULED" || a.status === "CONFIRMED") && a.startsAt >= now
+  ).sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
 
   const past = appointments.filter(a => 
-    a.status === "COMPLETED" || (a.date < now && a.status !== "CANCELED" && a.status !== "NO_SHOW")
+    a.status === "COMPLETED" || (a.startsAt < now && a.status !== "CANCELLED" && a.status !== "NO_SHOW")
   );
 
   const canceled = appointments.filter(a => 
-    a.status === "CANCELED" || a.status === "NO_SHOW"
+    a.status === "CANCELLED" || a.status === "NO_SHOW"
   );
 
   const renderList = (list: typeof appointments, emptyMessage: string) => {
@@ -82,7 +82,7 @@ export default async function PatientAppointmentsPage() {
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 gap-2">
               <div className="flex flex-col">
                 <CardTitle className="text-base font-medium">
-                  {format(apt.date, "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                  {format(apt.startsAt, "dd 'de' MMMM, yyyy", { locale: ptBR })}
                 </CardTitle>
               </div>
               <Badge variant="outline" className={statusMap[apt.status as keyof typeof statusMap]?.color || ""}>
@@ -93,12 +93,12 @@ export default async function PatientAppointmentsPage() {
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
                 <span>
-                  {format(apt.date, "HH:mm")}
+                  {format(apt.startsAt, "HH:mm")}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <UserIcon className="h-4 w-4" />
-                <span>Profissional: {apt.user.name}</span>
+                <span>Profissional: {apt.professional.name}</span>
               </div>
             </CardContent>
           </Card>

@@ -37,9 +37,9 @@ export default async function PatientDashboardPage() {
     where: {
       tenantId,
       patientId,
-      date: { gte: new Date() }
+      startsAt: { gte: new Date() }
     },
-    orderBy: { date: 'asc' }
+    orderBy: { startsAt: 'asc' }
   });
 
   const totalDocuments = await prisma.attachment.count({
@@ -65,7 +65,7 @@ export default async function PatientDashboardPage() {
   });
 
   const formattedNextAppointment = nextAppointment
-    ? format(nextAppointment.date, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+    ? format(nextAppointment.startsAt, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
     : "Nenhuma agendada";
 
   const formattedLastAccess = patientAccount?.lastLoginAt

@@ -1,8 +1,59 @@
 import { PageHeader } from "@/components/dashboard/page-header"
 import { StatCard } from "@/components/dashboard/stat-card"
-import { Users, Calendar, CalendarClock, FileText } from "lucide-react"
+import { Users, Calendar, CalendarClock, Mail, RefreshCcw } from "lucide-react"
+import prisma from "@/lib/prisma"
+import { auth } from "@/auth"
+import { startOfDay, endOfDay } from "date-fns"
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const session = await auth();
+  if (!session?.user) return null;
+
+  const tenantId = session.user.tenantId;
+  const professionalId = session.user.id;
+
+  const now = new Date();
+  const todayStart = startOfDay(now);
+  const todayEnd = endOfDay(now);
+
+  const [
+    totalPatients,
+    todayAppointments,
+    nextAppointments,
+    sentReminders,
+    pendingSyncs
+  ] = await Promise.all([
+    prisma.patient.count({ where: { tenantId } }),
+    prisma.appointment.count({
+      where: {
+        tenantId,
+        professionalId,
+        startsAt: { gte: todayStart, lte: todayEnd },
+      }
+    }),
+    prisma.appointment.count({
+      where: {
+        tenantId,
+        professionalId,
+        startsAt: { gte: now },
+      }
+    }),
+    prisma.appointmentReminder.count({
+      where: {
+        tenantId,
+        appointment: { professionalId },
+        status: "SENT"
+      }
+    }),
+    prisma.appointment.count({
+      where: {
+        tenantId,
+        professionalId,
+        syncStatus: "PENDING"
+      }
+    }),
+  ]);
+
   return (
     <div className="space-y-8 animate-in fade-in-50 duration-500">
       <PageHeader 
@@ -10,30 +61,36 @@ export default function DashboardPage() {
         description="Bem-vindo(a) de volta! Aqui está o resumo da sua clínica." 
       />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <StatCard
           title="Total de Pacientes"
-          value="124"
-          description="+4 novos este mês"
+          value={totalPatients.toString()}
+          description="Ativos no sistema"
           icon={Users}
         />
         <StatCard
           title="Consultas Hoje"
-          value="8"
-          description="3 realizadas, 5 pendentes"
+          value={todayAppointments.toString()}
+          description="Agendadas para hoje"
           icon={Calendar}
         />
         <StatCard
           title="Próximas Consultas"
-          value="24"
-          description="Para os próximos 7 dias"
+          value={nextAppointments.toString()}
+          description="Consultas futuras"
           icon={CalendarClock}
         />
         <StatCard
-          title="Documentos Pendentes"
-          value="3"
-          description="Aguardando assinatura"
-          icon={FileText}
+          title="Lembretes Enviados"
+          value={sentReminders.toString()}
+          description="Notificações automáticas"
+          icon={Mail}
+        />
+        <StatCard
+          title="Sync Pendentes"
+          value={pendingSyncs.toString()}
+          description="Aguardando sincronização"
+          icon={RefreshCcw}
         />
       </div>
 

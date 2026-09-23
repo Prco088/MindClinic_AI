@@ -44,8 +44,8 @@ export default async function PatientTimelinePage() {
     }),
     prisma.appointment.findMany({
       where: { tenantId, patientId },
-      include: { user: true },
-      orderBy: { date: "desc" }
+      include: { professional: true },
+      orderBy: { startsAt: "desc" }
     })
   ]);
 
@@ -92,9 +92,9 @@ export default async function PatientTimelinePage() {
       events.push({
         id: `apt-${apt.id}-completed`,
         type: "APPOINTMENT",
-        date: apt.date, // Simplification, could use actual completion time if stored
+        date: apt.startsAt, // Simplification, could use actual completion time if stored
         title: "Consulta Realizada",
-        description: `Com ${apt.user.name}`,
+        description: `Com ${apt.professional.name}`,
         icon: Calendar,
         color: "bg-emerald-500",
       });
@@ -106,7 +106,7 @@ export default async function PatientTimelinePage() {
         type: "APPOINTMENT",
         date: apt.createdAt,
         title: "Consulta Agendada",
-        description: `Para ${format(apt.date, "dd/MM/yyyy")} com ${apt.user.name}`,
+        description: `Para ${format(apt.startsAt, "dd/MM/yyyy")} com ${apt.professional.name}`,
         icon: Calendar,
         color: "bg-purple-500",
       });
