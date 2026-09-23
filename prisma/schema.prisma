@@ -13,6 +13,7 @@ enum Role {
   PSYCHIATRIST
   THERAPIST
   SECRETARY
+  PATIENT
 }
 
 enum ConsentCategory {
@@ -118,6 +119,7 @@ model Patient {
   address               String?
   emergencyContactName  String?
   emergencyContactPhone String?
+  healthInsurance       String?
   notes                 String?   @db.Text
   isActive              Boolean   @default(true)
   tenantId              String
@@ -133,8 +135,24 @@ model Patient {
   diagnoses          Diagnosis[]
   attachments        Attachment[]
   consentAcceptances ConsentAcceptance[]
+  patientAccount     PatientAccount?
+  auditLogs          AuditLog[]
 
   @@unique([tenantId, cpf])
+}
+
+model PatientAccount {
+  id           String    @id @default(cuid())
+  patientId    String    @unique
+  email        String    @unique
+  passwordHash String
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
 }
 
 model Appointment {
@@ -277,7 +295,7 @@ model Attachment {
 
   uploadedBy String
   uploadedAt DateTime @default(now())
-  scanStatus String? @default("PENDING")
+  scanStatus String?  @default("PENDING")
 
   deletedAt DateTime?
   deletedBy String?
@@ -285,29 +303,30 @@ model Attachment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+  tenant   Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient  Patient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  user     User                @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
   versions AttachmentVersion[]
 }
 
 model AttachmentVersion {
-  id           String   @id @default(cuid())
+  id String @id @default(cuid())
 
   attachmentId String
 
-  fileName     String
-  storageKey   String
+  fileName   String
+  storageKey String
 
-  createdAt    DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  attachment   Attachment @relation(fields: [attachmentId], references: [id], onDelete: Cascade)
+  attachment Attachment @relation(fields: [attachmentId], references: [id], onDelete: Cascade)
 }
 
 model AuditLog {
-  id       String @id @default(cuid())
-  tenantId String
-  userId   String
+  id        String  @id @default(cuid())
+  tenantId  String
+  userId    String?
+  patientId String?
 
   entity   String
   entityId String
@@ -322,8 +341,9 @@ model AuditLog {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user    User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  patient Patient? @relation(fields: [patientId], references: [id], onDelete: Cascade)
 }
 
 model ConsentVersion {
