@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AttachmentForm } from "./attachment-form";
+import { AttachmentUpload } from "./attachment-upload";
 
 interface AttachmentModalProps {
   patientId: string;
@@ -24,10 +24,9 @@ export function AttachmentModal({ patientId, trigger }: AttachmentModalProps) {
           </DialogDescription>
         </DialogHeader>
         
-        <AttachmentForm 
+        <AttachmentUpload 
           patientId={patientId} 
           onSuccess={() => setOpen(false)} 
-          onCancel={() => setOpen(false)} 
         />
       </DialogContent>
     </Dialog>

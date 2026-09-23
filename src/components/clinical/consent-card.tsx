@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ConsentVersion, ConsentAcceptance } from "@prisma/client";
 import { format } from "date-fns";
@@ -29,7 +29,7 @@ export function ConsentCard({ patientId, version, acceptance, isAccepted }: Cons
         consentVersionId: version.id,
       });
       toast.success("Termo de consentimento aceito com sucesso!");
-    } catch (error) {
+    } catch {
       toast.error("Erro ao aceitar termo", {
         description: "Não foi possível registrar o aceite. Tente novamente.",
       });
@@ -48,7 +48,7 @@ export function ConsentCard({ patientId, version, acceptance, isAccepted }: Cons
         consentAcceptanceId: acceptance.id,
       });
       toast.success("Termo de consentimento revogado.");
-    } catch (error) {
+    } catch {
       toast.error("Erro ao revogar termo", {
         description: "Não foi possível registrar a revogação. Tente novamente.",
       });

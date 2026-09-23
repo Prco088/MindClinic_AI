@@ -65,6 +65,7 @@ model User {
   diagnoses             Diagnosis[]
   auditLogs             AuditLog[]
   progressNoteAddendums ProgressNoteAddendum[]
+  attachments           Attachment[]
 }
 
 model Account {
@@ -270,9 +271,13 @@ model Attachment {
   patientId String
 
   fileName   String
-  fileType   String
+  mimeType   String
   fileSize   Int
   storageKey String
+
+  uploadedBy String
+  uploadedAt DateTime @default(now())
+  scanStatus String? @default("PENDING")
 
   deletedAt DateTime?
   deletedBy String?
@@ -282,6 +287,21 @@ model Attachment {
 
   tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+  versions AttachmentVersion[]
+}
+
+model AttachmentVersion {
+  id           String   @id @default(cuid())
+
+  attachmentId String
+
+  fileName     String
+  storageKey   String
+
+  createdAt    DateTime @default(now())
+
+  attachment   Attachment @relation(fields: [attachmentId], references: [id], onDelete: Cascade)
 }
 
 model AuditLog {

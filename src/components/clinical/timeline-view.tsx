@@ -7,6 +7,7 @@ import { ptBR } from "date-fns/locale";
 import { SignProgressNoteButton } from "./sign-progress-note-button";
 import { AddendumModal } from "./addendum-modal";
 import { DiagnosisModal } from "./diagnosis-modal";
+import { AttachmentPreview } from "./attachment-preview";
 import { Button } from "@/components/ui/button";
 
 interface TimelineViewProps {
@@ -115,9 +116,10 @@ function renderEventContent(event: TimelineEvent) {
       );
     case "ATTACHMENT":
       return (
-        <div>
-          <p className="text-sm font-medium">{event.data.fileName}</p>
-        </div>
+        <AttachmentPreview 
+          attachmentId={event.id} 
+          fileName={event.data.fileName || "Anexo"} 
+        />
       );
     case "CONSENT_TERM":
       return (

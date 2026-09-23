@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { ConsentCategory } from "@prisma/client";
+import { ConsentCategory, Prisma, ConsentVersion, ConsentAcceptance } from "@prisma/client";
 
 export interface CreateConsentVersionData {
   tenantId: string;
@@ -59,7 +59,7 @@ export const consentService = {
    * Also generates an AuditLog entry.
    */
   async acceptConsent(data: AcceptConsentData) {
-    const acceptance = await prisma.$transaction(async (tx: any) => {
+    const acceptance = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Create the acceptance record
       const record = await tx.consentAcceptance.create({
         data: {
@@ -81,7 +81,7 @@ export const consentService = {
             entity: "ConsentAcceptance",
             entityId: record.id,
             action: "CONSENT_ACCEPT",
-            newData: record as any,
+            newData: record as unknown as Prisma.InputJsonValue,
           },
         });
       }
@@ -97,7 +97,7 @@ export const consentService = {
    * Also generates an AuditLog entry.
    */
   async revokeConsent(data: RevokeConsentData) {
-    const revoked = await prisma.$transaction(async (tx: any) => {
+    const revoked = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const record = await tx.consentAcceptance.update({
         where: {
           id: data.consentAcceptanceId,
@@ -117,7 +117,7 @@ export const consentService = {
           entity: "ConsentAcceptance",
           entityId: record.id,
           action: "CONSENT_REVOKE",
-          newData: record as any,
+          newData: record as unknown as Prisma.InputJsonValue,
         },
       });
 
@@ -149,7 +149,7 @@ export const consentService = {
         tenantId,
         patientId,
         consentVersionId: {
-          in: activeVersions.map((v: any) => v.id),
+          in: activeVersions.map((v: ConsentVersion) => v.id),
         },
       },
       orderBy: {
@@ -158,9 +158,9 @@ export const consentService = {
     });
 
     // 3. Map them together
-    return activeVersions.map((version: any) => {
+    return activeVersions.map((version: ConsentVersion) => {
       // Find the most recent record for this version (could be revoked or accepted)
-      const acceptanceRecord = acceptances.find((a: any) => a.consentVersionId === version.id);
+      const acceptanceRecord = acceptances.find((a: ConsentAcceptance) => a.consentVersionId === version.id);
       
       return {
         version,
