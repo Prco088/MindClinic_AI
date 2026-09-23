@@ -15,23 +15,33 @@ enum Role {
   SECRETARY
 }
 
+enum ConsentCategory {
+  DATA_PROCESSING
+  DOCUMENT_STORAGE
+  TELEMEDICINE
+  AI_ASSISTANCE
+  MARKETING
+}
+
 model Tenant {
   id        String   @id @default(cuid())
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users          User[]
-  patients       Patient[]
-  appointments   Appointment[]
-  medicalRecords MedicalRecord[]
-  consentTerms   ConsentTerm[]
-  anamnesis      Anamnesis[]
-  progressNotes  ProgressNote[]
+  users                 User[]
+  patients              Patient[]
+  appointments          Appointment[]
+  medicalRecords        MedicalRecord[]
+  consentTerms          ConsentTerm[]
+  anamnesis             Anamnesis[]
+  progressNotes         ProgressNote[]
   diagnoses             Diagnosis[]
   attachments           Attachment[]
   auditLogs             AuditLog[]
   progressNoteAddendums ProgressNoteAddendum[]
+  consentVersions       ConsentVersion[]
+  consentAcceptances    ConsentAcceptance[]
 }
 
 model User {
@@ -46,11 +56,11 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  accounts       Account[]
-  sessions       Session[]
-  appointments   Appointment[]
-  medicalRecords MedicalRecord[]
+  tenant                Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  accounts              Account[]
+  sessions              Session[]
+  appointments          Appointment[]
+  medicalRecords        MedicalRecord[]
   progressNotes         ProgressNote[]
   diagnoses             Diagnosis[]
   auditLogs             AuditLog[]
@@ -113,14 +123,15 @@ model Patient {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  appointments   Appointment[]
-  medicalRecords MedicalRecord[]
-  consentTerms   ConsentTerm[]
-  anamnesis      Anamnesis[]
-  progressNotes  ProgressNote[]
-  diagnoses      Diagnosis[]
-  attachments    Attachment[]
+  tenant             Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  appointments       Appointment[]
+  medicalRecords     MedicalRecord[]
+  consentTerms       ConsentTerm[]
+  anamnesis          Anamnesis[]
+  progressNotes      ProgressNote[]
+  diagnoses          Diagnosis[]
+  attachments        Attachment[]
+  consentAcceptances ConsentAcceptance[]
 
   @@unique([tenantId, cpf])
 }
@@ -155,28 +166,28 @@ model MedicalRecord {
 }
 
 model ConsentTerm {
-  id            String   @id @default(cuid())
-  accepted      Boolean  @default(false)
-  patientId     String
-  tenantId      String
-  
+  id        String  @id @default(cuid())
+  accepted  Boolean @default(false)
+  patientId String
+  tenantId  String
+
   acceptedAt    DateTime?
   version       String?
   signatureType String?
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
 }
 
 model Anamnesis {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   tenantId  String
   patientId String
   formData  Json
-  
+
   deletedAt DateTime?
   deletedBy String?
 
@@ -188,26 +199,26 @@ model Anamnesis {
 }
 
 model ProgressNote {
-  id                 String   @id @default(cuid())
-  tenantId           String
-  patientId          String
-  userId             String
-  
+  id        String @id @default(cuid())
+  tenantId  String
+  patientId String
+  userId    String
+
   sessionDate        DateTime
   content            String   @db.Text
   clinicalAssessment String?  @db.Text
   therapeuticPlan    String?  @db.Text
   observations       String?  @db.Text
-  
-  isSigned           Boolean  @default(false)
-  signedAt           DateTime?
-  signedBy           String?
 
-  deletedAt          DateTime?
-  deletedBy          String?
+  isSigned Boolean   @default(false)
+  signedAt DateTime?
+  signedBy String?
 
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  deletedAt DateTime?
+  deletedBy String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   tenant    Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient   Patient                @relation(fields: [patientId], references: [id], onDelete: Cascade)
@@ -216,14 +227,14 @@ model ProgressNote {
 }
 
 model ProgressNoteAddendum {
-  id             String   @id @default(cuid())
+  id             String @id @default(cuid())
   tenantId       String
   progressNoteId String
   userId         String
-  content        String   @db.Text
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  content        String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   progressNote ProgressNote @relation(fields: [progressNoteId], references: [id], onDelete: Cascade)
@@ -231,22 +242,22 @@ model ProgressNoteAddendum {
 }
 
 model Diagnosis {
-  id          String   @id @default(cuid())
-  tenantId    String
-  patientId   String
-  userId      String
+  id        String @id @default(cuid())
+  tenantId  String
+  patientId String
+  userId    String
 
   cidCode     String?
   system      String?
   title       String
-  description String?  @db.Text
-  isActive    Boolean  @default(true)
+  description String? @db.Text
+  isActive    Boolean @default(true)
 
-  deletedAt   DateTime?
-  deletedBy   String?
+  deletedAt DateTime?
+  deletedBy String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
@@ -254,36 +265,36 @@ model Diagnosis {
 }
 
 model Attachment {
-  id          String   @id @default(cuid())
-  tenantId    String
-  patientId   String
+  id        String @id @default(cuid())
+  tenantId  String
+  patientId String
 
-  fileName    String
-  fileType    String
-  fileSize    Int
-  storageKey  String
+  fileName   String
+  fileType   String
+  fileSize   Int
+  storageKey String
 
-  deletedAt   DateTime?
-  deletedBy   String?
+  deletedAt DateTime?
+  deletedBy String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
 }
 
 model AuditLog {
-  id        String   @id @default(cuid())
-  tenantId  String
-  userId    String
+  id       String @id @default(cuid())
+  tenantId String
+  userId   String
 
-  entity    String
-  entityId  String
-  action    String
+  entity   String
+  entityId String
+  action   String
 
-  oldData   Json?
-  newData   Json?
+  oldData Json?
+  newData Json?
 
   ipAddress String?
   userAgent String?
@@ -293,4 +304,42 @@ model AuditLog {
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ConsentVersion {
+  id          String          @id @default(cuid())
+  tenantId    String
+  title       String
+  description String          @db.Text
+  version     String
+  category    ConsentCategory
+  isActive    Boolean         @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant      Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  acceptances ConsentAcceptance[]
+}
+
+model ConsentAcceptance {
+  id               String @id @default(cuid())
+  tenantId         String
+  patientId        String
+  consentVersionId String
+
+  acceptedAt        DateTime @default(now())
+  acceptedIp        String?
+  acceptedUserAgent String?
+  acceptedBy        String?
+
+  revokedAt DateTime?
+  revokedBy String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant         Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient        Patient        @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  consentVersion ConsentVersion @relation(fields: [consentVersionId], references: [id], onDelete: Cascade)
 }
