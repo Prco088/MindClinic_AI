@@ -26,6 +26,14 @@ enum ConsentCategory {
   MARKETING
 }
 
+enum TelemedicineStatus {
+  SCHEDULED
+  WAITING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
 enum AppointmentStatus {
   SCHEDULED
   CONFIRMED
@@ -116,6 +124,7 @@ model Tenant {
   aiPromptTemplates     AiPromptTemplate[]
   aiEmbeddings          AiEmbedding[]
   clinicalInsights      ClinicalInsight[]
+  telemedicineSessions  TelemedicineSession[]
 }
 
 model User {
@@ -145,6 +154,7 @@ model User {
   googleCalendarConnection  GoogleCalendarConnection?
   outlookCalendarConnection OutlookCalendarConnection?
   aiAnalyses                AiAnalysis[]
+  telemedicineSessions      TelemedicineSession[]
 }
 
 model Account {
@@ -204,21 +214,22 @@ model Patient {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  tenant             Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  appointments       Appointment[]
-  medicalRecords     MedicalRecord[]
-  consentTerms       ConsentTerm[]
-  anamnesis          Anamnesis[]
-  progressNotes      ProgressNote[]
-  diagnoses          Diagnosis[]
-  attachments        Attachment[]
-  consentAcceptances ConsentAcceptance[]
-  patientAccount     PatientAccount?
-  auditLogs          AuditLog[]
-  aiAnalyses         AiAnalysis[]
-  aiJobs             AiJob[]
-  aiEmbeddings       AiEmbedding[]
-  clinicalInsights   ClinicalInsight[]
+  tenant               Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  appointments         Appointment[]
+  medicalRecords       MedicalRecord[]
+  consentTerms         ConsentTerm[]
+  anamnesis            Anamnesis[]
+  progressNotes        ProgressNote[]
+  diagnoses            Diagnosis[]
+  attachments          Attachment[]
+  consentAcceptances   ConsentAcceptance[]
+  patientAccount       PatientAccount?
+  auditLogs            AuditLog[]
+  aiAnalyses           AiAnalysis[]
+  aiJobs               AiJob[]
+  aiEmbeddings         AiEmbedding[]
+  clinicalInsights     ClinicalInsight[]
+  telemedicineSessions TelemedicineSession[]
 
   @@unique([tenantId, cpf])
 }
@@ -238,30 +249,33 @@ model PatientAccount {
 }
 
 model Appointment {
-  id               String            @id @default(cuid())
-  tenantId         String
-  patientId        String
-  professionalId   String
-  title            String?
-  description      String?           @db.Text
-  location         String?
-  appointmentType  AppointmentType   @default(IN_PERSON)
-  status           AppointmentStatus @default(SCHEDULED)
-  startsAt         DateTime
-  endsAt           DateTime
-  durationMinutes  Int
-  notes            String?           @db.Text
-  meetingUrl       String?
-  externalEventId  String?
-  externalProvider String?
-  syncStatus       String?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  id                    String            @id @default(cuid())
+  tenantId              String
+  patientId             String
+  professionalId        String
+  title                 String?
+  description           String?           @db.Text
+  location              String?
+  appointmentType       AppointmentType   @default(IN_PERSON)
+  status                AppointmentStatus @default(SCHEDULED)
+  startsAt              DateTime
+  endsAt                DateTime
+  durationMinutes       Int
+  notes                 String?           @db.Text
+  meetingUrl            String?
+  isOnline              Boolean           @default(false)
+  telemedicineSessionId String?           @unique
+  externalEventId       String?
+  externalProvider      String?
+  syncStatus            String?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
 
-  tenant       Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  patient      Patient               @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  professional User                  @relation(fields: [professionalId], references: [id], onDelete: Cascade)
-  reminders    AppointmentReminder[]
+  tenant              Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient             Patient               @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  professional        User                  @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  reminders           AppointmentReminder[]
+  telemedicineSession TelemedicineSession?  @relation(fields: [telemedicineSessionId], references: [id], onDelete: SetNull)
 }
 
 model WorkingHours {
@@ -653,4 +667,26 @@ model ClinicalInsight {
   tenant   Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient  Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
   analysis AiAnalysis? @relation(fields: [analysisId], references: [id], onDelete: SetNull)
+}
+
+model TelemedicineSession {
+  id                      String             @id @default(cuid())
+  tenantId                String
+  appointmentId           String?            @unique
+  patientId               String
+  professionalId          String
+  roomName                String             @unique
+  accessTokenPatient      String?            @db.Text
+  accessTokenProfessional String?            @db.Text
+  status                  TelemedicineStatus @default(SCHEDULED)
+  startedAt               DateTime?
+  endedAt                 DateTime?
+  durationMinutes         Int?
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
+
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient      Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  professional User         @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  appointment  Appointment?
 }

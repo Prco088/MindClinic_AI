@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -43,6 +44,7 @@ interface AppointmentModalProps {
 }
 
 export function AppointmentModal({ open, onOpenChange, appointment, initialDates, patients }: AppointmentModalProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const form = useForm<FormValues>({
@@ -262,6 +264,32 @@ export function AppointmentModal({ open, onOpenChange, appointment, initialDates
               <Label>Anotações (opcional)</Label>
               <Textarea {...form.register("notes")} placeholder="Observações sobre o agendamento" />
             </div>
+
+            {appointment?.id && form.watch("appointmentType") === "ONLINE" && (
+              <div className="pt-2">
+                {appointment.telemedicineSessionId ? (
+                  <Button type="button" variant="outline" className="w-full flex gap-2" onClick={() => router.push(`/telemedicine/${appointment.telemedicineSessionId}`)}>
+                    Entrar na Sessão de Telemedicina
+                  </Button>
+                ) : (
+                  <Button type="button" variant="outline" className="w-full flex gap-2" onClick={async () => {
+                    const { createTelemedicineSessionAction } = await import("@/app/actions/telemedicine");
+                    try {
+                      const patient = patients.find(p => p.id === form.getValues("patientId"));
+                      if (!patient) return;
+                      const res = await createTelemedicineSessionAction(appointment.id, patient.id, patient.fullName);
+                      if (res.sessionId) {
+                        router.push(`/telemedicine/${res.sessionId}`);
+                      }
+                    } catch (e: any) {
+                      toast.error(e.message || "Erro ao criar sessão");
+                    }
+                  }}>
+                    Criar e Entrar na Sessão
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
 
           <DialogFooter className="flex justify-between items-center sm:justify-between pt-4 border-t">

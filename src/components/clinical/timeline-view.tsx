@@ -129,6 +129,15 @@ function renderEventContent(event: TimelineEvent) {
           </p>
         </div>
       );
+    case "TELEMEDICINE_SESSION":
+      return (
+        <div className="space-y-2">
+          <p className="text-sm text-muted-foreground">{event.description}</p>
+          {event.data.durationMinutes !== null && event.data.durationMinutes > 0 && (
+            <p className="text-xs">Duração: {event.data.durationMinutes} minutos</p>
+          )}
+        </div>
+      );
     default:
       return null;
   }

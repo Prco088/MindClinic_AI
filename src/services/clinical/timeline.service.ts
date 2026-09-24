@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 
-export type TimelineEventType = "ANAMNESIS" | "PROGRESS_NOTE" | "ADDENDUM" | "DIAGNOSIS" | "ATTACHMENT" | "CONSENT_TERM";
+export type TimelineEventType = "ANAMNESIS" | "PROGRESS_NOTE" | "ADDENDUM" | "DIAGNOSIS" | "ATTACHMENT" | "CONSENT_TERM" | "TELEMEDICINE_SESSION";
 
 export interface TimelineEvent {
   id: string;
@@ -27,6 +27,7 @@ export async function getPatientTimeline(
     diagnoses,
     attachments,
     consentTerms,
+    telemedicineSessions,
   ] = await Promise.all([
     prisma.anamnesis.findMany({
       where: { tenantId, patientId, deletedAt: null },
@@ -53,6 +54,11 @@ export async function getPatientTimeline(
     }),
     prisma.consentTerm.findMany({
       where: { tenantId, patientId },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.telemedicineSession.findMany({
+      where: { tenantId, patientId },
+      include: { professional: { select: { id: true, name: true } } },
       orderBy: { createdAt: "desc" },
     }),
   ]);
@@ -143,6 +149,26 @@ export async function getPatientTimeline(
       patientId: c.patientId,
       tenantId: c.tenantId,
       data: c,
+    });
+  }
+
+  for (const t of telemedicineSessions) {
+    let title = "Sessão de Telemedicina Criada";
+    if (t.status === "COMPLETED") title = "Sessão de Telemedicina Encerrada";
+    if (t.status === "IN_PROGRESS") title = "Sessão de Telemedicina Iniciada";
+    if (t.status === "CANCELLED") title = "Sessão de Telemedicina Cancelada";
+
+    timeline.push({
+      id: t.id,
+      eventType: "TELEMEDICINE_SESSION",
+      title: "🎥 " + title,
+      description: `Status: ${t.status}` + (t.durationMinutes ? ` (${t.durationMinutes} min)` : ""),
+      date: t.startedAt || t.createdAt,
+      createdAt: t.createdAt,
+      createdBy: t.professional,
+      patientId: t.patientId,
+      tenantId: t.tenantId,
+      data: t,
     });
   }
 

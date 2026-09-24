@@ -21,6 +21,8 @@ export type AppointmentData = {
   durationMinutes: number;
   notes?: string;
   meetingUrl?: string;
+  isOnline?: boolean;
+  telemedicineSessionId?: string | null;
 };
 
 const appointmentSchema = z.object({
@@ -154,6 +156,7 @@ export async function saveAppointment(data: AppointmentData) {
         description: parsed.description,
         location: parsed.location,
         appointmentType: parsed.appointmentType,
+        isOnline: parsed.appointmentType === "ONLINE",
         status: parsed.status,
         startsAt: parsed.startsAt,
         endsAt: parsed.endsAt,

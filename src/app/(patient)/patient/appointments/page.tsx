@@ -4,11 +4,13 @@ import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, User as UserIcon } from "lucide-react";
+import { Calendar, Clock, User as UserIcon, Video } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/dashboard/empty-state";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Minhas Consultas - Paciente | MindClinic AI",
@@ -89,16 +91,33 @@ export default async function PatientAppointmentsPage() {
                 {statusMap[apt.status as keyof typeof statusMap]?.label || apt.status}
               </Badge>
             </CardHeader>
-            <CardContent className="pt-4 grid gap-2 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                <span>
-                  {format(apt.startsAt, "HH:mm")}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <UserIcon className="h-4 w-4" />
-                <span>Profissional: {apt.professional.name}</span>
+            <CardContent className="pt-4 text-sm text-muted-foreground">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    <span>
+                      {format(apt.startsAt, "HH:mm")}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <UserIcon className="h-4 w-4" />
+                    <span>Profissional: {apt.professional.name}</span>
+                  </div>
+                  {apt.isOnline && (
+                    <div className="flex items-center gap-2 mt-1 text-primary">
+                      <Video className="h-4 w-4" />
+                      <span>Telemedicina</span>
+                    </div>
+                  )}
+                </div>
+                {apt.isOnline && apt.telemedicineSessionId && (apt.status === "SCHEDULED" || apt.status === "CONFIRMED") && (
+                  <Link href={`/telemedicine/${apt.telemedicineSessionId}`}>
+                    <Button variant="default" size="sm" type="button">
+                      Entrar na Sala
+                    </Button>
+                  </Link>
+                )}
               </div>
             </CardContent>
           </Card>
