@@ -21,3 +21,19 @@ export async function createPromptTemplate(
     },
   });
 }
+
+export async function getOrCreateDefaultTemplate(
+  tenantId: string,
+  name: string,
+  defaultPrompt: string,
+  description?: string
+) {
+  const existing = await prisma.aiPromptTemplate.findFirst({
+    where: { tenantId, name },
+  });
+
+  if (existing) return existing.promptTemplate;
+
+  const created = await createPromptTemplate(tenantId, name, defaultPrompt, description);
+  return created.promptTemplate;
+}
