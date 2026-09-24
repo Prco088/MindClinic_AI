@@ -1,7 +1,7 @@
 type LogLevel = "INFO" | "WARN" | "ERROR" | "SECURITY" | "AUDIT";
 
 export const logger = {
-  log: (level: LogLevel, message: string, meta: Record<string, any> = {}) => {
+  log: (level: LogLevel, message: string, meta: Record<string, unknown> = {}) => {
     const logEntry = {
       timestamp: new Date().toISOString(),
       level,
@@ -21,9 +21,9 @@ export const logger = {
     }
   },
 
-  info: (message: string, meta?: Record<string, any>) => logger.log("INFO", message, meta),
-  warn: (message: string, meta?: Record<string, any>) => logger.log("WARN", message, meta),
-  error: (message: string, meta?: Record<string, any>) => logger.log("ERROR", message, meta),
-  security: (message: string, meta?: Record<string, any>) => logger.log("SECURITY", message, meta),
-  audit: (message: string, meta?: Record<string, any>) => logger.log("AUDIT", message, meta),
+  info: (message: string, meta?: Record<string, unknown>) => logger.log("INFO", message, meta),
+  warn: (message: string, meta?: Record<string, unknown>) => logger.log("WARN", message, meta),
+  error: (message: string, meta?: Record<string, unknown>) => logger.log("ERROR", message, meta),
+  security: (message: string, meta?: Record<string, unknown>) => logger.log("SECURITY", message, meta),
+  audit: (message: string, meta?: Record<string, unknown>) => logger.log("AUDIT", message, meta),
 };

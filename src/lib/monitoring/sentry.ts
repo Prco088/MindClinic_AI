@@ -1,6 +1,6 @@
 import { logger } from "./logger";
 
-export const sentryCapture = (error: Error, context?: Record<string, any>) => {
+export const sentryCapture = (error: Error, context?: Record<string, unknown>) => {
   // Em produção, isso enviaria para o Sentry:
   // Sentry.captureException(error, { extra: context });
   logger.error("Unhandled Exception Captured by Sentry Simulator", { 

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 export async function GET() {
-  const status: Record<string, any> = {
+  const status = {
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
     services: {
