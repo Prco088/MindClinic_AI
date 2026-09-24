@@ -4,6 +4,49 @@ import { Users, Calendar, CalendarClock, Mail, RefreshCcw } from "lucide-react"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import { startOfDay, endOfDay } from "date-fns"
+import { unstable_cache } from "next/cache"
+
+const getDashboardStats = unstable_cache(
+  async (tenantId: string, professionalId: string) => {
+    const now = new Date();
+    const todayStart = startOfDay(now);
+    const todayEnd = endOfDay(now);
+
+    return Promise.all([
+      prisma.patient.count({ where: { tenantId } }),
+      prisma.appointment.count({
+        where: {
+          tenantId,
+          professionalId,
+          startsAt: { gte: todayStart, lte: todayEnd },
+        }
+      }),
+      prisma.appointment.count({
+        where: {
+          tenantId,
+          professionalId,
+          startsAt: { gte: now },
+        }
+      }),
+      prisma.appointmentReminder.count({
+        where: {
+          tenantId,
+          appointment: { professionalId },
+          status: "SENT"
+        }
+      }),
+      prisma.appointment.count({
+        where: {
+          tenantId,
+          professionalId,
+          syncStatus: "PENDING"
+        }
+      })
+    ]);
+  },
+  ['dashboard-stats'],
+  { revalidate: 60, tags: ['dashboard'] }
+);
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -12,9 +55,7 @@ export default async function DashboardPage() {
   const tenantId = session.user.tenantId;
   const professionalId = session.user.id;
 
-  const now = new Date();
-  const todayStart = startOfDay(now);
-  const todayEnd = endOfDay(now);
+  if (!tenantId || !professionalId) return null;
 
   const [
     totalPatients,
@@ -22,37 +63,7 @@ export default async function DashboardPage() {
     nextAppointments,
     sentReminders,
     pendingSyncs
-  ] = await Promise.all([
-    prisma.patient.count({ where: { tenantId } }),
-    prisma.appointment.count({
-      where: {
-        tenantId,
-        professionalId,
-        startsAt: { gte: todayStart, lte: todayEnd },
-      }
-    }),
-    prisma.appointment.count({
-      where: {
-        tenantId,
-        professionalId,
-        startsAt: { gte: now },
-      }
-    }),
-    prisma.appointmentReminder.count({
-      where: {
-        tenantId,
-        appointment: { professionalId },
-        status: "SENT"
-      }
-    }),
-    prisma.appointment.count({
-      where: {
-        tenantId,
-        professionalId,
-        syncStatus: "PENDING"
-      }
-    }),
-  ]);
+  ] = await getDashboardStats(tenantId, professionalId);
 
   return (
     <div className="space-y-8 animate-in fade-in-50 duration-500">

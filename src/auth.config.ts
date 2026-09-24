@@ -1,6 +1,11 @@
 import type { NextAuthConfig } from "next-auth";
 
 export const authConfig = {
+  session: {
+    strategy: "jwt",
+    maxAge: 4 * 60 * 60, // 4 hours
+    updateAge: 60 * 60,  // 1 hour
+  },
   pages: {
     signIn: "/login",
   },
@@ -13,7 +18,8 @@ export const authConfig = {
       const isProtectedRoute = nextUrl.pathname.startsWith("/dashboard") || 
                                nextUrl.pathname.startsWith("/patients") ||
                                nextUrl.pathname.startsWith("/appointments") ||
-                               nextUrl.pathname.startsWith("/records");
+                               nextUrl.pathname.startsWith("/records") ||
+                               nextUrl.pathname.startsWith("/admin");
       
       // Patient routes
       if (isPatientRoute) {
