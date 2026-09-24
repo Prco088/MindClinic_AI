@@ -1,9 +1,11 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider   = "postgresql"
+  extensions = [vector]
 }
 
 enum Role {
@@ -67,6 +69,14 @@ enum AiJobStatus {
   CANCELLED
 }
 
+enum EmbeddingSourceType {
+  ANAMNESIS
+  PROGRESS_NOTE
+  DIAGNOSIS
+  ATTACHMENT
+  PATIENT
+}
+
 model Tenant {
   id        String   @id @default(cuid())
   name      String
@@ -94,6 +104,7 @@ model Tenant {
   aiAnalyses            AiAnalysis[]
   aiJobs                AiJob[]
   aiPromptTemplates     AiPromptTemplate[]
+  aiEmbeddings          AiEmbedding[]
 }
 
 model User {
@@ -195,6 +206,7 @@ model Patient {
   auditLogs          AuditLog[]
   aiAnalyses         AiAnalysis[]
   aiJobs             AiJob[]
+  aiEmbeddings       AiEmbedding[]
 
   @@unique([tenantId, cpf])
 }
@@ -594,4 +606,19 @@ model AiPromptTemplate {
   updatedAt DateTime @updatedAt
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model AiEmbedding {
+  id         String                     @id @default(cuid())
+  tenantId   String
+  patientId  String
+  sourceType EmbeddingSourceType
+  sourceId   String
+  content    String                     @db.Text
+  embedding  Unsupported("vector(768)")
+
+  createdAt DateTime @default(now())
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
 }

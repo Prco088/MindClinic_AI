@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
-import { BrainCircuit, Clock, CheckCircle, Database } from "lucide-react";
+import { BrainCircuit, Clock, CheckCircle, Database, Search } from "lucide-react";
 
 export default async function AiDashboardPage() {
   const session = await auth();
@@ -15,11 +15,13 @@ export default async function AiDashboardPage() {
     pendingJobs,
     completedJobs,
     templates,
+    totalEmbeddings,
   ] = await Promise.all([
     prisma.aiAnalysis.count({ where: { tenantId } }),
     prisma.aiJob.count({ where: { tenantId, status: "PENDING" } }),
     prisma.aiJob.count({ where: { tenantId, status: "COMPLETED" } }),
     prisma.aiPromptTemplate.count({ where: { tenantId } }),
+    prisma.aiEmbedding.count({ where: { tenantId } }),
   ]);
 
   // Aggregate tokens as proxy for consumption (mockly calculated or grouped)
@@ -76,7 +78,13 @@ export default async function AiDashboardPage() {
           title="Consumo de Tokens"
           value={totalTokens.toLocaleString()}
           description="Estimativa total"
-          icon={BrainCircuit} // Reusing BrainCircuit as consumption metric for now
+          icon={BrainCircuit}
+        />
+        <StatCard
+          title="Indexações"
+          value={totalEmbeddings.toString()}
+          description="Trechos de documentos indexados"
+          icon={Search}
         />
       </div>
 
@@ -120,6 +128,10 @@ export default async function AiDashboardPage() {
             <a href="/ai/document-summary" className="block p-3 border rounded hover:bg-muted/50 transition-colors">
               <p className="font-medium">Resumo de Documentos</p>
               <p className="text-xs text-muted-foreground">Extraia e resuma conteúdos de arquivos.</p>
+            </a>
+            <a href="/ai/search" className="block p-3 border rounded hover:bg-muted/50 transition-colors bg-primary/5 border-primary/20">
+              <p className="font-medium">Busca Semântica (Novo)</p>
+              <p className="text-xs text-muted-foreground">Pesquisa inteligente em linguagem natural através do histórico.</p>
             </a>
           </div>
         </div>

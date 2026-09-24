@@ -5,6 +5,7 @@ export abstract class BaseAiProvider implements AiProviderInterface {
   abstract readonly providerName: AiProvider;
   
   abstract generateText(params: AiPromptParams): Promise<AiGenerationResult>;
+  abstract generateEmbedding(text: string): Promise<number[]>;
 }
 
 // Mock Implementation for Phase 8.1
@@ -25,5 +26,13 @@ export class MockAiProvider extends BaseAiProvider {
       model: params.config?.model || "mock-model",
       metadata: { mock: true }
     };
+  }
+
+  async generateEmbedding(_text: string): Promise<number[]> {
+    // Simulate delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Dummy vector of 768 dimensions
+    return Array.from({ length: 768 }, () => Math.random() * 2 - 1);
   }
 }

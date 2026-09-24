@@ -24,4 +24,5 @@ export interface AiGenerationResult {
 export interface AiProviderInterface {
   readonly providerName: AiProvider;
   generateText(params: AiPromptParams): Promise<AiGenerationResult>;
+  generateEmbedding(text: string): Promise<number[]>;
 }
