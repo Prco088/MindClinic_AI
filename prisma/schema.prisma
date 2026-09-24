@@ -61,6 +61,16 @@ enum AiAnalysisType {
   RISK_ANALYSIS
 }
 
+enum ClinicalInsightType {
+  LONGITUDINAL_SUMMARY
+  RECURRING_THEMES
+  ENGAGEMENT_PATTERN
+  FOLLOWUP_ALERT
+  DOCUMENT_PATTERN
+  CONSENT_ALERT
+  SCHEDULING_PATTERN
+}
+
 enum AiJobStatus {
   PENDING
   RUNNING
@@ -105,6 +115,7 @@ model Tenant {
   aiJobs                AiJob[]
   aiPromptTemplates     AiPromptTemplate[]
   aiEmbeddings          AiEmbedding[]
+  clinicalInsights      ClinicalInsight[]
 }
 
 model User {
@@ -207,6 +218,7 @@ model Patient {
   aiAnalyses         AiAnalysis[]
   aiJobs             AiJob[]
   aiEmbeddings       AiEmbedding[]
+  clinicalInsights   ClinicalInsight[]
 
   @@unique([tenantId, cpf])
 }
@@ -569,10 +581,11 @@ model AiAnalysis {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  patient Patient? @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  user    User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-  jobs    AiJob[]
+  tenant   Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient  Patient?          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  user     User              @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  jobs     AiJob[]
+  insights ClinicalInsight[]
 }
 
 model AiJob {
@@ -621,4 +634,23 @@ model AiEmbedding {
 
   tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+model ClinicalInsight {
+  id          String              @id @default(cuid())
+  tenantId    String
+  patientId   String
+  analysisId  String?
+  type        ClinicalInsightType
+  title       String
+  description String              @db.Text
+  confidence  Float               @default(0.0)
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant   Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient  Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  analysis AiAnalysis? @relation(fields: [analysisId], references: [id], onDelete: SetNull)
 }

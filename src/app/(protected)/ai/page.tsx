@@ -16,12 +16,14 @@ export default async function AiDashboardPage() {
     completedJobs,
     templates,
     totalEmbeddings,
+    totalInsights,
   ] = await Promise.all([
     prisma.aiAnalysis.count({ where: { tenantId } }),
     prisma.aiJob.count({ where: { tenantId, status: "PENDING" } }),
     prisma.aiJob.count({ where: { tenantId, status: "COMPLETED" } }),
     prisma.aiPromptTemplate.count({ where: { tenantId } }),
     prisma.aiEmbedding.count({ where: { tenantId } }),
+    prisma.clinicalInsight.count({ where: { tenantId } }),
   ]);
 
   // Aggregate tokens as proxy for consumption (mockly calculated or grouped)
@@ -86,6 +88,12 @@ export default async function AiDashboardPage() {
           description="Trechos de documentos indexados"
           icon={Search}
         />
+        <StatCard
+          title="Insights Gerados"
+          value={totalInsights.toString()}
+          description="Inteligência longitudinal"
+          icon={BrainCircuit}
+        />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
@@ -130,8 +138,12 @@ export default async function AiDashboardPage() {
               <p className="text-xs text-muted-foreground">Extraia e resuma conteúdos de arquivos.</p>
             </a>
             <a href="/ai/search" className="block p-3 border rounded hover:bg-muted/50 transition-colors bg-primary/5 border-primary/20">
-              <p className="font-medium">Busca Semântica (Novo)</p>
+              <p className="font-medium">Busca Semântica</p>
               <p className="text-xs text-muted-foreground">Pesquisa inteligente em linguagem natural através do histórico.</p>
+            </a>
+            <a href="/ai/insights" className="block p-3 border rounded hover:bg-muted/50 transition-colors bg-secondary/10 border-secondary/20">
+              <p className="font-medium">Clinical Insights (Fase 8.4)</p>
+              <p className="text-xs text-muted-foreground">Padrões, temas recorrentes e alertas administrativos longitudinais.</p>
             </a>
           </div>
         </div>

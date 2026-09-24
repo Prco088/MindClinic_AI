@@ -28,6 +28,7 @@ export class MockAiProvider extends BaseAiProvider {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async generateEmbedding(_text: string): Promise<number[]> {
     // Simulate delay
     await new Promise((resolve) => setTimeout(resolve, 500));
